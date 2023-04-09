@@ -1,5 +1,5 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants.js';
-import fetchTargetRegion from './fetch.js';
+import { fetchRegions, fetchTargetRegion } from './fetch.js';
 import Canvas2DUtility from './classes/canvas2d.js';
 import DataStore from './classes/datastore.js';
 import SceneManager from './classes/scene.js';
@@ -7,6 +7,7 @@ import { Compass, Map } from './classes/character.js';
 import { EffectMessage, ResultMessage, RestartMessage } from './classes/textcharacter.js';
 import Direction from './classes/linecharacter.js';
 import KeyButton from './classes/rectcharacter.js';
+import Border from './classes/polygoncharacter.js';
 
 /**
  * キーが押されたかを調べるためのオブジェクト
@@ -82,6 +83,11 @@ let restartMsg = null;
  */
 let enterBtn = null;
 /**
+ * 境界線のインスタンスを入れる配列
+ * @type {Border[]}
+ */
+const borders = [];
+/**
  * 再スタートするためのフラグ
  * @type {boolean}
  */
@@ -100,6 +106,13 @@ function initialize() {
   canvas.height = CANVAS_HEIGHT;
   // その他各クラス
   store = new DataStore();
+  // 地域データ一覧を取得し、各地域の境界線を用意
+  fetchRegions().then((data) => {
+    store.setRegionPositions(data);
+    store.regionPositions.forEach((position, i) => {
+      borders[i] = new Border(ctx, position, '#a0522d');
+    });
+  });
   scene = new SceneManager();
   enterBtn = new KeyButton(ctx, 0, 0, 200, 120, '#ffff00');
   // 動きを開始するための設定
@@ -297,9 +310,11 @@ function render() {
     Math.PI * 2,
     '#00bfff'
   );
+  // 各キャラクターを描く
   map.update();
   direction.update();
   compass.update();
+  borders.forEach((b) => b.update());
   if (compass.isAtEdge) effectMsg.update();
   enterBtn.update();
   scene.update();
