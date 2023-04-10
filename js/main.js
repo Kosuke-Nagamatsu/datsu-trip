@@ -56,7 +56,7 @@ let compass = null;
  * ダーツの的になる地図
  * @type {Map}
  */
-let map = null;
+let japanMap = null;
 /**
  * 東西南北の位置を示す補助線
  * @type {Direction}
@@ -126,7 +126,9 @@ function initialize() {
     CANVAS_WIDTH / 2, // 開始位置（x座標）
     CANVAS_HEIGHT / 2 // 開始位置（y座標）
   );
-  map = new Map(ctx, 0, 0, compass.range * 2, compass.range * 2, './images/japan_map.png');
+  japanMap = new Map(ctx, 0, 0, compass.range * 2, compass.range * 2, './images/japan_map.png');
+  // 境界線を日本地図にセット
+  japanMap.setBorders(borders);
   direction = new Direction(
     ctx,
     compass.position.x - compass.range,
@@ -311,10 +313,10 @@ function render() {
     '#00bfff'
   );
   // 各キャラクターを描く
-  map.update();
+  japanMap.update();
+  japanMap.borders.forEach((b) => b.update());
   direction.update();
   compass.update();
-  borders.forEach((b) => b.update());
   if (compass.isAtEdge) effectMsg.update();
   enterBtn.update();
   scene.update();
@@ -335,7 +337,7 @@ function loadCheck() {
   let ready = true;
   // 準備できているかチェック
   ready = compass.ready;
-  ready = map.ready;
+  ready = japanMap.ready;
 
   // 全ての準備が完了したら次の処理に進む
   if (ready) {
