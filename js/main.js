@@ -1,5 +1,5 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants.js';
-import fetchTargetRegion from './fetch.js';
+import { fetchRegions, fetchTargetRegion } from './fetch.js';
 import Canvas2DUtility from './classes/canvas2d.js';
 import DataStore from './classes/datastore.js';
 import SceneManager from './classes/scene.js';
@@ -7,6 +7,7 @@ import { Compass, Map } from './classes/character.js';
 import { EffectMessage, ResultMessage, RestartMessage } from './classes/textcharacter.js';
 import Direction from './classes/linecharacter.js';
 import KeyButton from './classes/rectcharacter.js';
+import Border from './classes/polygoncharacter.js';
 
 /**
  * キーが押されたかを調べるためのオブジェクト
@@ -55,7 +56,7 @@ let compass = null;
  * ダーツの的になる地図
  * @type {Map}
  */
-let map = null;
+let japanMap = null;
 /**
  * 東西南北の位置を示す補助線
  * @type {Direction}
@@ -82,6 +83,11 @@ let restartMsg = null;
  */
 let enterBtn = null;
 /**
+ * 境界線のインスタンスを入れる配列
+ * @type {Border[]}
+ */
+const borders = [];
+/**
  * 再スタートするためのフラグ
  * @type {boolean}
  */
@@ -100,6 +106,13 @@ function initialize() {
   canvas.height = CANVAS_HEIGHT;
   // その他各クラス
   store = new DataStore();
+  // 地域データ一覧を取得し、各地域の境界線を用意
+  fetchRegions().then((data) => {
+    store.setRegionPositions(data);
+    store.regionPositions.forEach((position, i) => {
+      borders[i] = new Border(ctx, position, '#a0522d');
+    });
+  });
   scene = new SceneManager();
   enterBtn = new KeyButton(ctx, 0, 0, 200, 120, '#ffff00');
   // 動きを開始するための設定
@@ -113,7 +126,9 @@ function initialize() {
     CANVAS_WIDTH / 2, // 開始位置（x座標）
     CANVAS_HEIGHT / 2 // 開始位置（y座標）
   );
-  map = new Map(ctx, 0, 0, compass.range * 2, compass.range * 2, './images/japan_map.png');
+  japanMap = new Map(ctx, 0, 0, compass.range * 2, compass.range * 2, './images/japan_map.png');
+  // 境界線を日本地図にセット
+  japanMap.setBorders(borders);
   direction = new Direction(
     ctx,
     compass.position.x - compass.range,
@@ -297,7 +312,9 @@ function render() {
     Math.PI * 2,
     '#00bfff'
   );
-  map.update();
+  // 各キャラクターを描く
+  japanMap.update();
+  japanMap.borders.forEach((b) => b.update());
   direction.update();
   compass.update();
   if (compass.isAtEdge) effectMsg.update();
@@ -320,7 +337,7 @@ function loadCheck() {
   let ready = true;
   // 準備できているかチェック
   ready = compass.ready;
-  ready = map.ready;
+  ready = japanMap.ready;
 
   // 全ての準備が完了したら次の処理に進む
   if (ready) {

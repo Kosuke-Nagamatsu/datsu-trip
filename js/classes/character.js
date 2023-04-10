@@ -227,6 +227,20 @@ export class Map extends Character {
    */
   shadowOffsetY = 1;
 
+  /**
+   * 各地域の境界線
+   * @type {Border[] | null}
+   */
+  borders = null;
+
+  /**
+   * 各地域の境界線を設定する
+   * @param {Border[]} borders - 境界線のインスタンスの配列
+   */
+  setBorders(borders) {
+    this.borders = borders;
+  }
+
   update() {
     this.ctx.save();
     this.ctx.shadowColor = this.shadowColor;

@@ -35,7 +35,7 @@ class RectCharacter extends Character {
     }
     this.ctx.beginPath();
     // 角丸四角形を描く
-    // （普通の四角形の処理を追加する場合は、drawRect()を追加する）
+    // （普通の四角形の処理を追加する場合は、rect()を追加する）
     if (this.type === 'round') {
       this.ctx.roundRect(
         this.position.x - offsetX,
